@@ -7,7 +7,8 @@
 #include <algorithm>
 #include <vector>
 using namespace std;
-#define MAX 20 //ilosc procesów minus 1
+#define MAX 500 //ilosc procesów minus 1.
+#define IleDoWyrzucenia 10 // ilosc uczestników odpadaj¹cych po ka¿dej turze.
 int IleUczestnikow(int *uczestnicy) {
 	int ile = 0;
 	for (int i = 0; i < MAX; i++) {
@@ -17,25 +18,25 @@ int IleUczestnikow(int *uczestnicy) {
 }
 void dyskwalifikacja(int *glosowanie, int *uczestnicy, int nrTury) {
 	int value = 0;
-	if (IleUczestnikow(uczestnicy) == 4 || IleUczestnikow(uczestnicy) == 3)
-		value = 1;
+	if (IleUczestnikow(uczestnicy) <=10)
+		value = IleDoWyrzucenia-1;
 	for (int i = 0; i < MAX; i++) {
 		
-		if (glosowanie[i] == 0 && value < 2) {
+		if (glosowanie[i] == 0 && value < IleDoWyrzucenia) {
 			++value;
 			cout << "Minimalny " << *std::min_element(glosowanie, glosowanie + MAX) << " value  = " << value << " user  = " << i +1 << endl;
 			uczestnicy[i] = 0;
-			glosowanie[i] = 100;
+			glosowanie[i] = INT16_MAX;
 			
 		}
-		if (glosowanie[i] == *std::min_element(glosowanie, glosowanie + MAX) && value < 2) {
+		if (glosowanie[i] == *std::min_element(glosowanie, glosowanie + MAX) && value < IleDoWyrzucenia) {
 			++value;
 			cout << "Minimalny " << *std::min_element(glosowanie, glosowanie + MAX) <<" value  = " << value << " user  = " << i +1 << endl;
 			uczestnicy[i] = 0;
-			glosowanie[i] = 100;
+			glosowanie[i] = INT16_MAX;
 			
 		}
-		if (i == MAX-1 && value == 1) {
+		if (i == MAX-1 && value < IleDoWyrzucenia) {
 			i = 0;
 			cout << "Reset" << endl;
 		}

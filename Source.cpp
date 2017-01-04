@@ -7,8 +7,8 @@
 #include <algorithm>
 #include <vector>
 using namespace std;
-#define MAX 500 //ilosc procesów minus 1.
-#define IleDoWyrzucenia 10 // ilosc uczestników odpadaj¹cych po ka¿dej turze.
+#define MAX 20 //ilosc procesów minus 1.
+#define IleDoWyrzucenia 10 // ilosc uczestników odpadajšcych po ka¿dej turze.
 int IleUczestnikow(int *uczestnicy) {
 	int ile = 0;
 	for (int i = 0; i < MAX; i++) {
@@ -18,25 +18,25 @@ int IleUczestnikow(int *uczestnicy) {
 }
 void dyskwalifikacja(int *glosowanie, int *uczestnicy, int nrTury) {
 	int value = 0;
-	if (IleUczestnikow(uczestnicy) <=10)
-		value = IleDoWyrzucenia-1;
+	if (IleUczestnikow(uczestnicy) <= 10)
+		value = IleDoWyrzucenia - 1;
 	for (int i = 0; i < MAX; i++) {
-		
+
 		if (glosowanie[i] == 0 && value < IleDoWyrzucenia) {
 			++value;
-			cout << "Minimalny " << *std::min_element(glosowanie, glosowanie + MAX) << " value  = " << value << " user  = " << i +1 << endl;
+			cout << "Minimalny " << *std::min_element(glosowanie, glosowanie + MAX) << " value  = " << value << " user  = " << i + 1 << endl;
 			uczestnicy[i] = 0;
 			glosowanie[i] = INT16_MAX;
-			
+
 		}
 		if (glosowanie[i] == *std::min_element(glosowanie, glosowanie + MAX) && value < IleDoWyrzucenia) {
 			++value;
-			cout << "Minimalny " << *std::min_element(glosowanie, glosowanie + MAX) <<" value  = " << value << " user  = " << i +1 << endl;
+			cout << "Minimalny " << *std::min_element(glosowanie, glosowanie + MAX) << " value  = " << value << " user  = " << i + 1 << endl;
 			uczestnicy[i] = 0;
 			glosowanie[i] = INT16_MAX;
-			
+
 		}
-		if (i == MAX-1 && value < IleDoWyrzucenia) {
+		if (i == MAX - 1 && value < IleDoWyrzucenia) {
 			i = 0;
 			cout << "Reset" << endl;
 		}
@@ -54,10 +54,10 @@ void werdykt(int *glosowanie, int *uczestnicy) {
 		}
 	}
 	if (glosowanie[uczestnik1] != glosowanie[uczestnik2])
-		glosowanie[uczestnik1] > glosowanie[uczestnik2] 
-		? cout << "Wygral Kandydant nr : " << uczestnik1 + 1 << endl 
+		glosowanie[uczestnik1] > glosowanie[uczestnik2]
+		? cout << "Wygral Kandydant nr : " << uczestnik1 + 1 << endl
 		: cout << "Wygral Kandydant nr : " << uczestnik2 + 1 << endl;
-	if (glosowanie[uczestnik1] == glosowanie[uczestnik2]) 
+	if (glosowanie[uczestnik1] == glosowanie[uczestnik2])
 		cout << "Remis " << endl;
 }
 
@@ -86,43 +86,45 @@ int main() {
 		if (rank == 0) {
 			for (int i = 1; i < MAX + 1; i++) {
 				if (uczestnicy[i - 1] != 0)
-					MPI_Send(&value, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+					MPI_Send(&uczestnicy, MAX, MPI_INT, i, 0, MPI_COMM_WORLD);
 			}
 
 			for (int i = 1; i < MAX + 1; i++) {
-				if (uczestnicy[i-1] != 0) {
+				if (uczestnicy[i - 1] != 0) {
 					MPI_Recv(&value, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
 					glosowanie[value] += 1;
 				}
-					if (i == MAX) {
-						++numerTury;
-						if (IleUczestnikow(uczestnicy) == 2) {
-							for (int i = 0; i < MAX; i++) {
-								if (uczestnicy[i] != 0)
-									cout << "Kandydant nr : " << i + 1 << " Otrzymal " << glosowanie[i] << "glosow" << endl;
-							}
-							werdykt(glosowanie, uczestnicy);
-							go = 0;
-							break;
+				if (i == MAX) {
+					++numerTury;
+					if (IleUczestnikow(uczestnicy) == 2) {
+						for (int i = 0; i < MAX; i++) {
+							if (uczestnicy[i] != 0)
+								cout << "Kandydant nr : " << i + 1 << " Otrzymal " << glosowanie[i] << "glosow" << endl;
 						}
-						else {
-							
-							cout << "Tura numer " << numerTury << endl;
+						werdykt(glosowanie, uczestnicy);
+						go = 0;
+						break;
+					}
+					else {
 
-							for (int i = 0; i < MAX; i++) {
-								if (uczestnicy[i] != 0)
-									cout << "Kandydant nr : " << i + 1 << " Otrzymal " << glosowanie[i] << "glosow" << endl;
-							}
-							dyskwalifikacja(glosowanie, uczestnicy, numerTury);
+						cout << "Tura numer " << numerTury << endl;
+
+						for (int i = 0; i < MAX; i++) {
+							if (uczestnicy[i] != 0)
+								cout << "Kandydant nr : " << i + 1 << " Otrzymal " << glosowanie[i] << "glosow" << endl;
 						}
+						dyskwalifikacja(glosowanie, uczestnicy, numerTury);
+					}
 				}
 			}
 		}
 		else {
-			
-			if (MPI_Recv(&value, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status) == MPI_SUCCESS) {
+
+			if (MPI_Recv(&uczestnicy, MAX, MPI_INT, 0, 0, MPI_COMM_WORLD, &status) == MPI_SUCCESS) {
 				value = rand() % MAX;
-				
+				while(uczestnicy[value] == uczestnicy[rank])
+					value = rand() % MAX;
+
 				MPI_Send(&value, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
 			}

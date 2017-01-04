@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <vector>
 using namespace std;
-#define MAX 20 //ilosc procesów minus 1.
+#define MAX 500 //ilosc procesów minus 1.
 #define IleDoWyrzucenia 10 // ilosc uczestników odpadajšcych po ka¿dej turze.
 int IleUczestnikow(int *uczestnicy) {
 	int ile = 0;
@@ -85,12 +85,12 @@ int main() {
 	while (go) {
 		if (rank == 0) {
 			for (int i = 1; i < MAX + 1; i++) {
-				if (uczestnicy[i - 1] != 0)
+				if (uczestnicy[i - 1] != 0 && IleUczestnikow(uczestnicy) > 2)
 					MPI_Send(&uczestnicy, MAX, MPI_INT, i, 0, MPI_COMM_WORLD);
 			}
 
 			for (int i = 1; i < MAX + 1; i++) {
-				if (uczestnicy[i - 1] != 0) {
+				if (uczestnicy[i - 1] != 0 && IleUczestnikow(uczestnicy) > 2) {
 					MPI_Recv(&value, 1, MPI_INT, i, 0, MPI_COMM_WORLD, &status);
 					glosowanie[value] += 1;
 				}
@@ -122,9 +122,9 @@ int main() {
 
 			if (MPI_Recv(&uczestnicy, MAX, MPI_INT, 0, 0, MPI_COMM_WORLD, &status) == MPI_SUCCESS) {
 				value = rand() % MAX;
-				while(uczestnicy[value] == uczestnicy[rank])
+				while (uczestnicy[value] == uczestnicy[rank]) {
 					value = rand() % MAX;
-
+				}
 				MPI_Send(&value, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
 			}
